@@ -11,13 +11,17 @@
    # GPU（示例：CUDA 11.8）
    docker build --build-arg BASE_IMAGE=paddlepaddle/paddle:3.2.0-gpu-cuda11.8-cudnn8 -t paddle-ocr-gpu .
    ```
-2. 运行容器：
+2. 运行容器（挂载模型缓存目录，避免重复下载）：
    ```bash
    # CPU 运行
-   docker run --rm -p 8000:8000 paddle-ocr-cpu
+   docker run --rm -p 8000:8000 \
+     -v $(pwd)/paddle-cache:/opt/paddle-cache \
+     paddle-ocr-cpu
 
    # GPU 运行（需正确挂载 GPU 设备，例如 --gpus all）
-   docker run --rm --gpus all -e USE_GPU=true -p 8000:8000 paddle-ocr-gpu
+   docker run --rm --gpus all -e USE_GPU=true -p 8000:8000 \
+     -v $(pwd)/paddle-cache:/opt/paddle-cache \
+     paddle-ocr-gpu
    ```
 3. 调用示例：
    ```bash

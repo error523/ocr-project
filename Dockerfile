@@ -7,7 +7,8 @@ FROM ${BASE_IMAGE}
 # 设置工作目录
 WORKDIR /app
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PADDLE_PDX_CACHE_HOME=/opt/paddle-cache
 
 # 预先安装依赖（基础镜像已含 Paddle，本处安装 OCR/框架依赖）
 COPY requirements.txt .
