@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PaddleOCR 服务验证</title>
+  <style>
+    :root { font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; color: #111; background: #f6f7fb; }
+    body { margin: 0; padding: 24px; max-width: 1100px; margin-inline: auto; }
+    h1 { margin: 0 0 12px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; box-shadow: 0 8px 28px rgba(0,0,0,0.04); }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    button { background: #2563eb; color: #fff; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    input[type="file"] { padding: 8px 0; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 10px; overflow-x: auto; max-height: 400px; }
+    .status { font-size: 14px; color: #16a34a; }
+    .error { color: #dc2626; }
+    .preview { max-width: 360px; max-height: 360px; display: block; margin-top: 8px; border: 1px solid #e5e7eb; border-radius: 8px; object-fit: contain; }
+    .note { color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>PaddleOCR 服务验证</h1>
+  <p class="note">支持上传图片或 PDF，调用 <code>/ocr</code> 接口。默认只渲染 PDF 的所有页面并识别。</p>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="row" style="margin-bottom: 8px;">
+      <input id="file-input" type="file" accept="image/*,application/pdf" />
+      <button id="upload-btn">上传并识别</button>
+      <span id="status" class="status"></span>
+    </div>
+    <div id="preview-container"></div>
+  </div>
+
+  <div class="card">
+    <h3>识别结果</h3>
+    <pre id="result-box">等待上传...</pre>
+  </div>
+
+  <script>
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileInput = document.getElementById('file-input');
+    const statusEl = document.getElementById('status');
+    const resultBox = document.getElementById('result-box');
+    const preview = document.getElementById('preview-container');
+
+    uploadBtn.onclick = async () => {
+      const file = fileInput.files?.[0];
+      if (!file) {
+        alert('请选择文件');
+        return;
+      }
+
+      const form = new FormData();
+      form.append('file', file);
+
+      uploadBtn.disabled = true;
+      statusEl.textContent = '识别中...';
+      resultBox.textContent = '';
+
+      // 图片预览；PDF 不预览
+      preview.innerHTML = '';
+      if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.className = 'preview';
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+      }
+
+      try {
+        const res = await fetch('/ocr', { method: 'POST', body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || res.statusText);
+        resultBox.textContent = JSON.stringify(data, null, 2);
+        statusEl.textContent = '完成';
+        statusEl.className = 'status';
+      } catch (err) {
+        resultBox.textContent = String(err);
+        statusEl.textContent = '出错';
+        statusEl.className = 'status error';
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>
