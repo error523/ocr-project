@@ -17,7 +17,8 @@ def _make_ocr_engine() -> PaddleOCR:
     """Initialize OCR engine based on env; cached at module load."""
     use_gpu = os.getenv("USE_GPU", "false").lower() in {"1", "true", "yes"}
     lang = os.getenv("OCR_LANG", "ch")
-    return PaddleOCR(use_angle_cls=True, lang=lang, use_gpu=use_gpu)
+    device = "gpu" if use_gpu else "cpu"
+    return PaddleOCR(use_angle_cls=True, lang=lang, device=device)
 
 
 ocr_engine = _make_ocr_engine()
