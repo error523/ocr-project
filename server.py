@@ -25,15 +25,18 @@ ocr_engine = _make_ocr_engine()
 
 
 def _extract_image_results(image_path: str) -> List[dict]:
-    # In PaddleOCR >=3.3, angle classification is controlled by init (use_angle_cls=True)
-    result = ocr_engine.ocr(image_path)
+    # In PaddleOCR 3.3+, ocr() returns a list of OCRResult dicts with keys like
+    # rec_texts, rec_scores, rec_polys. We normalize to a flat list of items.
     items = []
-    for line in result:
-        for box, (text, score) in line:
+    for res in ocr_engine.ocr(image_path):
+        texts = res.get("rec_texts", [])
+        scores = res.get("rec_scores", [])
+        boxes = res.get("rec_polys", [])
+        for text, score, box in zip(texts, scores, boxes):
             items.append({
-                "text": text,
+                "text": text if not isinstance(text, (list, tuple)) else text[0],
                 "score": float(score),
-                "box": box,
+                "box": box.tolist() if hasattr(box, "tolist") else box,
             })
     return items
 
