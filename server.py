@@ -25,7 +25,8 @@ ocr_engine = _make_ocr_engine()
 
 
 def _extract_image_results(image_path: str) -> List[dict]:
-    result = ocr_engine.ocr(image_path, cls=True)
+    # In PaddleOCR >=3.3, angle classification is controlled by init (use_angle_cls=True)
+    result = ocr_engine.ocr(image_path)
     items = []
     for line in result:
         for box, (text, score) in line:
